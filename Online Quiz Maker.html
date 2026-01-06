@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Quiz Maker</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
+}
+body{
+    background:#eaf0ff;
+}
+header{
+    background:#1e90ff;
+    color:white;
+    padding:15px;
+    text-align:center;
+}
+nav button{
+    margin:5px;
+    padding:8px 15px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+.section{
+    display:none;
+    background:white;
+    max-width:500px;
+    margin:20px auto;
+    padding:20px;
+    border-radius:10px;
+}
+.section.active{
+    display:block;
+}
+input{
+    width:100%;
+    padding:10px;
+    margin:5px 0;
+}
+button.main{
+    width:100%;
+    padding:10px;
+    background:#1e90ff;
+    color:white;
+    border:none;
+    border-radius:5px;
+    margin-top:10px;
+}
+#options button{
+    width:100%;
+    margin:5px 0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Online Quiz Maker</h1>
+    <nav>
+        <button onclick="showHome()">Home</button>
+        <button onclick="showCreate()">Create Quiz</button>
+        <button onclick="showQuizList()">Take Quiz</button>
+    </nav>
+</header>
+
+<!-- HOME -->
+<div id="home" class="section active">
+    <h2>Welcome</h2>
+    <p>Create quizzes or take available quizzes and get instant results.</p>
+</div>
+
+<!-- CREATE QUIZ -->
+<div id="create" class="section">
+    <h2>Create Quiz</h2>
+    <input id="quizTitle" placeholder="Quiz Title">
+    <input id="question" placeholder="Question">
+    <input id="opt1" placeholder="Option 1">
+    <input id="opt2" placeholder="Option 2">
+    <input id="opt3" placeholder="Option 3">
+    <input id="opt4" placeholder="Option 4">
+    <input id="correct" placeholder="Correct option (1-4)">
+    <button class="main" onclick="addQuestion()">Add Question</button>
+    <button class="main" onclick="saveQuiz()">Save Quiz</button>
+    <p id="msg"></p>
+</div>
+
+<!-- QUIZ LIST -->
+<div id="quizList" class="section">
+    <h2>Available Quizzes</h2>
+    <ul id="list"></ul>
+</div>
+
+<!-- TAKE QUIZ -->
+<div id="takeQuiz" class="section">
+    <h2 id="quizName"></h2>
+    <p id="quizQ"></p>
+    <div id="options"></div>
+</div>
+
+<!-- RESULT -->
+<div id="result" class="section">
+    <h2>Result</h2>
+    <p id="score"></p>
+    <button class="main" onclick="showHome()">Go Home</button>
+</div>
+
+<script>
+let quizzes = JSON.parse(localStorage.getItem("quizzes")) || [];
+let tempQ = [];
+let currentQuiz, index = 0, score = 0;
+
+function showSection(id){
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+function showHome(){ showSection("home"); }
+function showCreate(){ tempQ=[]; showSection("create"); }
+
+function addQuestion(){
+    tempQ.push({
+        q:question.value,
+        o:[opt1.value,opt2.value,opt3.value,opt4.value],
+        a:correct.value-1
+    });
+    msg.innerText="Question Added!";
+}
+
+function saveQuiz(){
+    quizzes.push({title:quizTitle.value,questions:tempQ});
+    localStorage.setItem("quizzes",JSON.stringify(quizzes));
+    msg.innerText="Quiz Saved!";
+}
+
+function showQuizList(){
+    showSection("quizList");
+    list.innerHTML="";
+    quizzes.forEach((q,i)=>{
+        list.innerHTML+=`<li>${q.title}
+        <button onclick="startQuiz(${i})">Start</button></li>`;
+    });
+}
+
+function startQuiz(i){
+    currentQuiz=quizzes[i];
+    index=0; score=0;
+    showSection("takeQuiz");
+    loadQ();
+}
+
+function loadQ(){
+    let q=currentQuiz.questions[index];
+    quizName.innerText=currentQuiz.title;
+    quizQ.innerText=q.q;
+    options.innerHTML="";
+    q.o.forEach((op,i)=>{
+        options.innerHTML+=`<button onclick="check(${i})">${op}</button>`;
+    });
+}
+
+function check(i){
+    if(i===currentQuiz.questions[index].a) score++;
+    index++;
+    if(index<currentQuiz.questions.length) loadQ();
+    else{
+        showSection("result");
+        score.innerText=`Your Score: ${score}/${currentQuiz.questions.length}`;
+    }
+}
+</script>
+
+</body>
+</html>
